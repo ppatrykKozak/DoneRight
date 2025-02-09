@@ -93,13 +93,30 @@ public partial class TasksPage : ContentPage
     private async void LoadTasksFromFile()
     {
         string filePath = Path.Combine(FileSystem.AppDataDirectory, "tasks.json");
-        string json = await File.ReadAllTextAsync(filePath);
-        var loadTasks = JsonSerializer.Deserialize<List<TaskItem>>(json) ?? new List<TaskItem>();
 
-            foreach (var task in loadTasks)
+        try
+        {
+            // Sprawdzenie, czy plik istnieje – jeœli nie, tworzymy nowy
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Plik tasks.json nie istnieje. Tworzê nowy plik.");
+                await File.WriteAllTextAsync(filePath, "[]"); // Zapis pustej listy JSON
+            }
+
+            // Odczyt pliku
+            string json = await File.ReadAllTextAsync(filePath);
+            var loadedTasks = JsonSerializer.Deserialize<List<TaskItem>>(json) ?? new List<TaskItem>();
+
+            // Aktualizacja listy zadañ
+            Tasks.Clear();
+            foreach (var task in loadedTasks)
             {
                 Tasks.Add(task);
             }
-
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"B³¹d podczas wczytywania pliku: {ex.Message}");
+        }
     }
 }
